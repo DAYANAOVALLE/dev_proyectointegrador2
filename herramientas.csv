@@ -1,0 +1,6 @@
+id,nombre,version,licencia,activo
+1,Blender,3.5,GPL,False
+2,Photoshop,2022,Propietaria,True
+3,Substance Painter,8.1,Propietaria,True
+4,GIMP,2.10,GPL,False
+5,Krita,5.1,GPL,True

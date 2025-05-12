@@ -1,0 +1,9 @@
+id,nombre,tipo,autor,año,activo
+1,personaje principal,3D,juan,2024,False
+2,Escenario Futurista,2D,Estudio B,2022,True
+3,Icono de Inventario,UI,Estudio C,2023,True
+4,Fondo de Batalla,2D,Estudio A,2020,False
+5,Personaje Secundario,3D,Estudio D,2022,True
+6,fondo movil,3D,anonimo,2025,True
+7,elden,3D RPG,from software,2023,False
+8,fondo movil,3D,anonimo,2020,False
