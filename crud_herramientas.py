@@ -1,6 +1,6 @@
 import csv
 from models import HerramientaDigital
-
+from fastapi import HTTPException, status
 FILE_PATH_HERRAMIENTAS = "herramientas.csv"
 
 def cargar_herramientas() -> list[HerramientaDigital]:
@@ -61,7 +61,13 @@ def buscar_por_nombre_h(nombre: str) -> list[HerramientaDigital]:
     return [h for h in cargar_herramientas() if h.activo and nombre.lower() in h.nombre.lower()]
 
 def filtrar_por_licencia(licencia: str) -> list[HerramientaDigital]:
-    return [h for h in cargar_herramientas() if h.activo and h.licencia.lower() == licencia.lower()]
+    resultados = [h for h in cargar_herramientas() if h.activo and h.licencia.lower() == licencia.lower()]
+    if not resultados:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No se encontraron herramientas con licencia '{licencia}'."
+        )
+    return resultados
 
 def actualizar_herramienta(h: HerramientaDigital) -> bool:
     herramientas = cargar_herramientas()

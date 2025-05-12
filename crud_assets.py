@@ -1,6 +1,6 @@
 import csv
 from models import Asset
-
+from fastapi import HTTPException, status
 RUTA_ASSETS = "assets.csv"
 
 def cargar_assets() -> list[Asset]:
