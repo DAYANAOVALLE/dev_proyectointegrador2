@@ -1,0 +1,28 @@
+Mapa de Endpoints
+
+-General
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/` | Mensaje de bienvenida |
+
+-Assets
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/assets/` | Obtener todos los assets activos |
+| POST | `/assets/` | Crear un nuevo asset |
+| GET | `/assets/{asset_id}` | Obtener un asset por ID |
+| DELETE | `/assets/{asset_id}` | Eliminación lógica de un asset |
+| PUT | `/assets/{asset_id}` | Actualizar un asset por ID |
+| GET | `/assets/buscar/?nombre=` | Buscar assets por nombre |
+| GET | `/assets/filtrar/?tipo=` | Filtrar assets por tipo |
+
+-Herramientas
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/herramientas/` | Obtener todas las herramientas activas |
+| POST | `/herramientas/` | Crear una nueva herramienta |
+| GET | `/herramientas/{herramienta_id}` | Obtener una herramienta por ID |
+| DELETE | `/herramientas/{herramienta_id}` | Eliminación lógica de una herramienta |
+| PUT | `/herramientas/{herramienta_id}` | Actualizar una herramienta por ID |
+| GET | `/herramientas/buscar/?nombre=` | Buscar herramientas por nombre |
+| GET | `/herramientas/filtrar/?licencia=` | Filtrar herramientas por tipo de licencia |
