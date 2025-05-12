@@ -60,7 +60,13 @@ def buscar_por_nombre(nombre: str) -> list[Asset]:
     return [a for a in cargar_assets() if a.activo and nombre.lower() in a.nombre.lower()]
 
 def filtrar_por_tipo(tipo: str) -> list[Asset]:
-    return [a for a in cargar_assets() if a.activo and a.tipo.lower() == tipo.lower()]
+    resultados = [a for a in cargar_assets() if a.activo and a.tipo.lower() == tipo.lower()]
+    if not resultados:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No se encontraron assets del tipo '{tipo}'."
+        )
+    return resultados
 
 def actualizar_asset(asset_actualizado: Asset) -> bool:
     assets = cargar_assets()
