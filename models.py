@@ -8,7 +8,6 @@ class Asset(BaseModel):
     año: int
     activo: bool = True
 
-
 class AssetVisual(BaseModel):
     id: int
     nombre: str

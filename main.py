@@ -53,7 +53,6 @@ def endpoint_actualizar_asset(asset: Asset):
         return {"mensaje": "Asset actualizado"}
     raise HTTPException(status_code=404, detail="Asset no encontrado")
 
-# ---------------- HERRAMIENTAS ----------------
 
 @app.get("/herramientas/", response_model=list[HerramientaVisual], tags=["Herramientas"])
 def get_herramientas():
@@ -91,6 +90,6 @@ def filtrar_herramientas(licencia: str):
 
 @app.put("/herramientas/", tags=["Herramientas"])
 def endpoint_actualizar_herramienta(h: HerramientaDigital):
-    if actualizar_herramienta(h):  # Esta es la del crud_herramientas
+    if actualizar_herramienta(h):
         return {"mensaje": "Herramienta actualizada"}
     raise HTTPException(status_code=404, detail="Herramienta no encontrada")
