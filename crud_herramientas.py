@@ -1,84 +1,47 @@
-import csv
-from models import HerramientaDigital
-from fastapi import HTTPException, status
-FILE_PATH_HERRAMIENTAS = "herramientas.csv"
+from sqlalchemy.orm import Session
+from models import Herramienta
+from fastapi import HTTPException
+import che
 
-def cargar_herramientas() -> list[HerramientaDigital]:
-    try:
-        with open(FILE_PATH_HERRAMIENTAS, newline='', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            return [HerramientaDigital(**{
-                "id": int(row["id"]),
-                "nombre": row["nombre"],
-                "version": row["version"],
-                "licencia": row["licencia"],
-                "activo": row["activo"].lower() == "true"
-            }) for row in reader]
-    except FileNotFoundError:
-        return []
+def get_all_herramientas(db: Session):
+    return db.query(Herramienta).filter(Herramienta.activo == True).all()
 
-def guardar_herramientas(herramientas: list[HerramientaDigital]):
-    with open(FILE_PATH_HERRAMIENTAS, mode='w', newline='', encoding='utf-8') as f:
-        writer = csv.DictWriter(f, fieldnames=["id", "nombre", "version", "licencia", "activo"])
-        writer.writeheader()
-        for h in herramientas:
-            writer.writerow(h.dict())
+def get_herramienta_by_id(db: Session, herramienta_id: int):
+    herramienta = db.query(Herramienta).filter(Herramienta.id == herramienta_id, Herramienta.activo == True).first()
+    if not herramienta:
+        raise HTTPException(status_code=404, detail="Herramienta no encontrada")
+    return herramienta
 
-def agregar_herramienta(h: HerramientaDigital):
-    herramientas = cargar_herramientas()
-    if any(x.id == h.id for x in herramientas):
-        raise ValueError("ID ya existente")
-    herramientas.append(h)
-    guardar_herramientas(herramientas)
+def create_herramienta(db: Session, herramienta: che.HerramientaCreate):
+    db_herramienta = Herramienta(**herramienta.dict())
+    db.add(db_herramienta)
+    db.commit()
+    db.refresh(db_herramienta)
+    return db_herramienta
 
-FILE_PATH_HERRAMIENTAS = 'herramientas.csv'
+def delete_herramienta(db: Session, herramienta_id: int):
+    herramienta = db.query(Herramienta).filter(Herramienta.id == herramienta_id).first()
+    if not herramienta:
+        raise HTTPException(status_code=404, detail="Herramienta no encontrada")
+    herramienta.activo = False
+    db.commit()
+    return {"mensaje": "Herramienta eliminada lógicamente"}
 
-def eliminar_herramienta_por_id(herramienta_id: int):
-    filas_actualizadas = []
-    encontrado = False
+def buscar_herramienta_por_nombre(db: Session, nombre: str):
+    return db.query(Herramienta).filter(Herramienta.activo == True, Herramienta.nombre.ilike(f"%{nombre}%")).all()
 
-    with open(FILE_PATH_HERRAMIENTAS, mode='r', newline='', encoding='utf-8') as archivo:
-        lector = csv.DictReader(archivo)
-        for fila in lector:
-            if int(fila["id"]) == herramienta_id:
-                fila["activo"] = "False"
-                encontrado = True
-            filas_actualizadas.append(fila)
-
-    if not encontrado:
-        return False
-
-    with open(FILE_PATH_HERRAMIENTAS, mode='w', newline='', encoding='utf-8') as archivo:
-        campos = ["id", "nombre", "version", "licencia", "activo"]
-        escritor = csv.DictWriter(archivo, fieldnames=campos)
-        escritor.writeheader()
-        escritor.writerows(filas_actualizadas)
-
-    return True
-
-
-def buscar_por_nombre_h(nombre: str) -> list[HerramientaDigital]:
-    return [h for h in cargar_herramientas() if h.activo and nombre.lower() in h.nombre.lower()]
-
-def filtrar_por_licencia(licencia: str) -> list[HerramientaDigital]:
-    resultados = [h for h in cargar_herramientas() if h.activo and h.licencia.lower() == licencia.lower()]
+def filtrar_herramienta_por_licencia(db: Session, licencia: str):
+    resultados = db.query(Herramienta).filter(Herramienta.activo == True, Herramienta.licencia.ilike(licencia)).all()
     if not resultados:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No se encontraron herramientas con licencia '{licencia}'."
-        )
+        raise HTTPException(status_code=404, detail=f"No se encontraron herramientas con licencia '{licencia}'.")
     return resultados
 
-def actualizar_herramienta(h: HerramientaDigital) -> bool:
-    herramientas = cargar_herramientas()
-    actualizado = False
-
-    for i, herramienta in enumerate(herramientas):
-        if herramienta.id == h.id:
-            herramientas[i] = h
-            actualizado = True
-            break
-
-
-
-
+def actualizar_herramienta(db: Session, herramienta: che.HerramientaRead):
+    db_herramienta = db.query(Herramienta).filter(Herramienta.id == herramienta.id).first()
+    if not db_herramienta:
+        raise HTTPException(status_code=404, detail="Herramienta no encontrada")
+    for key, value in herramienta.dict().items():
+        setattr(db_herramienta, key, value)
+    db.commit()
+    db.refresh(db_herramienta)
+    return db_herramienta

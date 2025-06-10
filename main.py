@@ -1,95 +1,66 @@
-from fastapi import FastAPI, HTTPException
-from models import Asset, AssetVisual, HerramientaDigital, HerramientaVisual
-from crud_assets import cargar_assets, agregar_asset, guardar_assets, buscar_por_nombre,eliminar_asset_por_id, filtrar_por_tipo, actualizar_asset
-from crud_herramientas import cargar_herramientas, agregar_herramienta, guardar_herramientas,eliminar_herramienta_por_id, buscar_por_nombre_h, filtrar_por_licencia, actualizar_herramienta
+from fastapi import Depends, FastAPI
+from sqlalchemy.orm import Session
+from database import get_db
+from crud_assets import *
+from crud_herramientas import *
+import che  # ✅ Importar tus modelos Pydantic
 
-app = FastAPI(
-    title="Recurso Artístico de videojuegos API",
-    description="API para gestionar assets y herramientas digitales relacionadas al desarrollo artistico de videojuegos"
-)
+app = FastAPI()
 
-@app.get("/")
-def home():
-    return {"mensaje": "Bienvenido a la API de recursos artísticos"}
+# ---------- ASSETS ----------
+@app.get("/assets/", response_model=list[che.AssetRead], tags=["Assets"])
+def get_assets(db: Session = Depends(get_db)):
+    return get_all_assets(db)
 
-# ---------------- ASSETS ----------------
+@app.post("/assets/", response_model=che.AssetRead, status_code=201, tags=["Assets"])
+def crear_asset(asset: che.AssetCreate, db: Session = Depends(get_db)):
+    return create_asset(db, asset)
 
-@app.get("/assets/", response_model=list[AssetVisual], tags=["Assets"])
-def get_assets():
-    return [AssetVisual(**a.dict()) for a in cargar_assets() if a.activo]
+@app.get("/assets/{asset_id}", response_model=che.AssetRead, tags=["Assets"])
+def get_asset(asset_id: int, db: Session = Depends(get_db)):
+    return get_asset_by_id(db, asset_id)
 
-@app.post("/assets/", status_code=201, tags=["Assets"])
-def crear_asset(asset: Asset):
-    try:
-        agregar_asset(asset)
-        return {"mensaje": "Asset agregado"}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@app.get("/assets/{asset_id}", response_model=AssetVisual, tags=["Assets"])
-def get_asset(asset_id: int):
-    for a in cargar_assets():
-        if a.id == asset_id and a.activo:
-            return AssetVisual(**a.dict())
-    raise HTTPException(status_code=404, detail="Asset no encontrado")
 @app.delete("/assets/{asset_id}", tags=["Assets"])
-def delete_asset(asset_id: int):
-    resultado = eliminar_asset_por_id(asset_id)
-    if not resultado:
-        raise HTTPException(status_code=404, detail="Asset no encontrado")
-    return {"mensaje": "Asset eliminado (lógicamente)"}
+def eliminar_asset(asset_id: int, db: Session = Depends(get_db)):
+    return delete_asset(db, asset_id)
 
-@app.get("/assets/buscar/", tags=["Assets"])
-def buscar_asset(nombre: str):
-    return buscar_por_nombre(nombre)
+@app.get("/assets/buscar/", response_model=list[che.AssetRead], tags=["Assets"])
+def buscar_asset(nombre: str, db: Session = Depends(get_db)):
+    return buscar_asset_por_nombre(db, nombre)
 
-@app.get("/assets/filtrar/", tags=["Assets"])
-def filtrar_assets(tipo: str):
-    return filtrar_por_tipo(tipo)
+@app.get("/assets/filtrar/", response_model=list[che.AssetRead], tags=["Assets"])
+def filtrar_assets(tipo: str, db: Session = Depends(get_db)):
+    return filtrar_asset_por_tipo(db, tipo)
 
-@app.put("/assets/", tags=["Assets"])
-def endpoint_actualizar_asset(asset: Asset):
-    if actualizar_asset(asset):  # Esta es la del crud_assets
-        return {"mensaje": "Asset actualizado"}
-    raise HTTPException(status_code=404, detail="Asset no encontrado")
+@app.put("/assets/", response_model=che.AssetRead, tags=["Assets"])
+def actualizar_asset_endpoint(asset: che.AssetRead, db: Session = Depends(get_db)):
+    return actualizar_asset(db, asset)
 
+# ---------- HERRAMIENTAS ----------
+@app.get("/herramientas/", response_model=list[che.HerramientaRead], tags=["Herramientas"])
+def get_herramientas(db: Session = Depends(get_db)):
+    return get_all_herramientas(db)
 
-@app.get("/herramientas/", response_model=list[HerramientaVisual], tags=["Herramientas"])
-def get_herramientas():
-    return [HerramientaVisual(**h.dict()) for h in cargar_herramientas() if h.activo]
+@app.post("/herramientas/", response_model=che.HerramientaRead, status_code=201, tags=["Herramientas"])
+def crear_herramienta(h: che.HerramientaCreate, db: Session = Depends(get_db)):
+    return create_herramienta(db, h)
 
-@app.post("/herramientas/", status_code=201, tags=["Herramientas"])
-def crear_herramienta(h: HerramientaDigital):
-    try:
-        agregar_herramienta(h)
-        return {"mensaje": "Herramienta agregada"}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@app.get("/herramientas/{herramienta_id}", response_model=HerramientaVisual, tags=["Herramientas"])
-def get_herramienta(herramienta_id: int):
-    for h in cargar_herramientas():
-        if h.id == herramienta_id and h.activo:
-            return HerramientaVisual(**h.dict())
-    raise HTTPException(status_code=404, detail="No encontrada")
+@app.get("/herramientas/{herramienta_id}", response_model=che.HerramientaRead, tags=["Herramientas"])
+def get_herramienta(herramienta_id: int, db: Session = Depends(get_db)):
+    return get_herramienta_by_id(db, herramienta_id)
 
 @app.delete("/herramientas/{herramienta_id}", tags=["Herramientas"])
-def delete_herramienta(herramienta_id: int):
-    resultado = eliminar_herramienta_por_id(herramienta_id)
-    if not resultado:
-        raise HTTPException(status_code=404, detail="Herramienta no encontrada")
-    return {"mensaje": "Herramienta eliminada correctamente"}
+def eliminar_herramienta(herramienta_id: int, db: Session = Depends(get_db)):
+    return delete_herramienta(db, herramienta_id)
 
-@app.get("/herramientas/buscar/", tags=["Herramientas"])
-def buscar_herramienta(nombre: str):
-    return buscar_por_nombre_h(nombre)
+@app.get("/herramientas/buscar/", response_model=list[che.HerramientaRead], tags=["Herramientas"])
+def buscar_herramienta(nombre: str, db: Session = Depends(get_db)):
+    return buscar_herramienta_por_nombre(db, nombre)
 
-@app.get("/herramientas/filtrar/", tags=["Herramientas"])
-def filtrar_herramientas(licencia: str):
-    return filtrar_por_licencia(licencia)
+@app.get("/herramientas/filtrar/", response_model=list[che.HerramientaRead], tags=["Herramientas"])
+def filtrar_herramientas(licencia: str, db: Session = Depends(get_db)):
+    return filtrar_herramienta_por_licencia(db, licencia)
 
-@app.put("/herramientas/", tags=["Herramientas"])
-def endpoint_actualizar_herramienta(h: HerramientaDigital):
-    if actualizar_herramienta(h):
-        return {"mensaje": "Herramienta actualizada"}
-    raise HTTPException(status_code=404, detail="Herramienta no encontrada")
+@app.put("/herramientas/", response_model=che.HerramientaRead, tags=["Herramientas"])
+def actualizar_herramienta_endpoint(h: che.HerramientaRead, db: Session = Depends(get_db)):
+    return actualizar_herramienta(db, h)

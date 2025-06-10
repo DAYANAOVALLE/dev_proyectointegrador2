@@ -1,84 +1,47 @@
-import csv
+from sqlalchemy.orm import Session
 from models import Asset
-from fastapi import HTTPException, status
-RUTA_ASSETS = "assets.csv"
+from fastapi import HTTPException
+import che
 
-def cargar_assets() -> list[Asset]:
-    try:
-        with open(RUTA_ASSETS, newline='', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            return [Asset(**{
-                "id": int(row["id"]),
-                "nombre": row["nombre"],
-                "tipo": row["tipo"],
-                "autor": row["autor"],
-                "año": int(row["año"]),
-                "activo": row["activo"].lower() == "true"
-            }) for row in reader]
-    except FileNotFoundError:
-        return []
+def get_all_assets(db: Session):
+    return db.query(Asset).filter(Asset.activo == True).all()
 
-def guardar_assets(assets: list[Asset]):
-    with open(RUTA_ASSETS, mode='w', newline='', encoding='utf-8') as f:
-        writer = csv.DictWriter(f, fieldnames=["id", "nombre", "tipo", "autor", "año", "activo"])
-        writer.writeheader()
-        for asset in assets:
-            writer.writerow(asset.dict())
+def get_asset_by_id(db: Session, asset_id: int):
+    asset = db.query(Asset).filter(Asset.id == asset_id, Asset.activo == True).first()
+    if not asset:
+        raise HTTPException(status_code=404, detail="Asset no encontrado")
+    return asset
 
-def agregar_asset(asset: Asset):
-    assets = cargar_assets()
-    if any(a.id == asset.id for a in assets):
-        raise ValueError("ID ya existente")
-    assets.append(asset)
-    guardar_assets(assets)
+def create_asset(db: Session, asset: che.AssetCreate):
+    db_asset = Asset(**asset.dict())
+    db.add(db_asset)
+    db.commit()
+    db.refresh(db_asset)
+    return db_asset
 
-FILE_PATH_ASSETS = 'assets.csv'
-def eliminar_asset_por_id(asset_id: int):
-    filas_actualizadas = []
-    encontrado = False
+def delete_asset(db: Session, asset_id: int):
+    asset = db.query(Asset).filter(Asset.id == asset_id).first()
+    if not asset:
+        raise HTTPException(status_code=404, detail="Asset no encontrado")
+    asset.activo = False
+    db.commit()
+    return {"mensaje": "Asset eliminado lógicamente"}
 
-    with open(FILE_PATH_ASSETS, mode='r', newline='', encoding='utf-8') as archivo:
-        lector = csv.DictReader(archivo)
-        for fila in lector:
-            if int(fila["id"]) == asset_id:
-                fila["activo"] = "False"
-                encontrado = True
-            filas_actualizadas.append(fila)
+def buscar_asset_por_nombre(db: Session, nombre: str):
+    return db.query(Asset).filter(Asset.activo == True, Asset.nombre.ilike(f"%{nombre}%")).all()
 
-    if not encontrado:
-        return False
-
-    with open(FILE_PATH_ASSETS, mode='w', newline='', encoding='utf-8') as archivo:
-        campos = ["id", "nombre", "tipo", "autor", "año", "activo"]
-        escritor = csv.DictWriter(archivo, fieldnames=campos)
-        escritor.writeheader()
-        escritor.writerows(filas_actualizadas)
-
-    return True
-
-def buscar_por_nombre(nombre: str) -> list[Asset]:
-    return [a for a in cargar_assets() if a.activo and nombre.lower() in a.nombre.lower()]
-
-def filtrar_por_tipo(tipo: str) -> list[Asset]:
-    resultados = [a for a in cargar_assets() if a.activo and a.tipo.lower() == tipo.lower()]
+def filtrar_asset_por_tipo(db: Session, tipo: str):
+    resultados = db.query(Asset).filter(Asset.activo == True, Asset.tipo.ilike(tipo)).all()
     if not resultados:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No se encontraron assets del tipo '{tipo}'."
-        )
+        raise HTTPException(status_code=404, detail=f"No se encontraron assets del tipo '{tipo}'.")
     return resultados
 
-def actualizar_asset(asset_actualizado: Asset) -> bool:
-    assets = cargar_assets()
-    actualizado = False
-
-    for i, asset in enumerate(assets):
-        if assets[i].id == asset_actualizado.id:
-            assets[i] = asset_actualizado
-            actualizado = True
-            break
-
-    if actualizado:
-        guardar_assets(assets)
-    return actualizado
-
+def actualizar_asset(db: Session, asset: che.AssetRead):
+    db_asset = db.query(Asset).filter(Asset.id == asset.id).first()
+    if not db_asset:
+        raise HTTPException(status_code=404, detail="Asset no encontrado")
+    for key, value in asset.dict().items():
+        setattr(db_asset, key, value)
+    db.commit()
+    db.refresh(db_asset)
+    return db_asset

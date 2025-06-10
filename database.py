@@ -1,20 +1,24 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-# Reemplaza estos valores con tu cadena real de conexión
-# Ejemplo:
-import os
-DATABASE_URL = os.getenv("DATABASE_URL")
+SQLALCHEMY_DATABASE_URL = (
+    "postgresql://u0hwjop3azb08mgtyubg:BLiCfsEfRe318C4xnUe6eVRXQRqB1r"
+    "@bopphzvxwcaqji6akdvw-postgresql.services.clever-cloud.com:50013/bopphzvxwcaqji6akdvw"
+)
 
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
-engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 Base = declarative_base()
 
-# Dependencia para usar en FastAPI
 def get_db():
-    db: Session = SessionLocal()
+    db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+def crear_db():
+    Base.metadata.create_all(bind=engine)
