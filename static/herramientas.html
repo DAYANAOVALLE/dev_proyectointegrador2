@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestor de Herramientas</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1>🛠️ Gestor Retro de Herramientas Digitales</h1>
+
+    <div class="form-section">
+      <h2>➕ Crear Nueva Herramienta</h2>
+      <form id="herramientaForm">
+        <input type="text" id="nombre" placeholder="Nombre" required />
+        <input type="text" id="version" placeholder="Versión" required />
+        <input type="text" id="licencia" placeholder="Licencia" required />
+        <button type="submit">Crear Herramienta</button>
+      </form>
+    </div>
+
+    <div class="form-section">
+      <h2>🔍 Buscar Herramienta por Nombre</h2>
+      <input type="text" id="searchTool" placeholder="Nombre de la Herramienta" />
+      <button onclick="buscarHerramienta()">Buscar</button>
+    </div>
+
+    <div class="form-section">
+      <h2>📋 Lista de Herramientas</h2>
+      <button onclick="cargarHerramientas()">Actualizar Lista</button>
+      <ul id="herramientaList"></ul>
+    </div>
+  </div>
+
+  <script src="/static/herramientas.js"></script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestor de Assets y Herramientas</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1>🎮 Gestor Retro de Assets & Herramientas</h1>
+
+    <div class="form-section">
+      <h2>➕ Crear Nuevo Asset</h2>
+      <form id="assetForm">
+        <input type="text" id="assetNombre" placeholder="Nombre" required />
+        <input type="text" id="assetTipo" placeholder="Tipo" required />
+        <input type="text" id="assetAutor" placeholder="Autor" required />
+        <input type="number" id="assetAnio" placeholder="Año" required />
+        <button type="submit">Crear Asset</button>
+      </form>
+    </div>
+
+    <div class="form-section">
+      <h2>🔍 Buscar Asset por Nombre</h2>
+      <input type="text" id="searchNombre" placeholder="Nombre del Asset" />
+      <button onclick="buscarAsset()">Buscar</button>
+    </div>
+
+    <div class="form-section">
+      <h2>📋 Lista de Assets</h2>
+      <button onclick="cargarAssets()">Actualizar Lista</button>
+      <ul id="assetList"></ul>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

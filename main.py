@@ -4,10 +4,25 @@ from database import get_db
 from crud_assets import *
 from crud_herramientas import *
 import che
-
-
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 app = FastAPI()
+
+# Montar la carpeta static
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Ruta principal
+@app.get("/", response_class=FileResponse)
+def serve_index():
+    return "static/index.html"
+
+# Ruta para herramientas
+@app.get("/herramientas", response_class=FileResponse)
+def serve_herramientas():
+    return "static/herramientas.html"
+
 
 # ---------- ASSETS ----------
 @app.get("/assets/", response_model=list[che.AssetRead], tags=["Assets"])
@@ -70,6 +85,15 @@ def actualizar_herramienta_endpoint(h: che.HerramientaRead, db: Session = Depend
 @app.get("/")
 def read_root():
     return {"message": "API del Proyecto Integrador 2 está activa 🚀"}
+
+# Montar la carpeta static
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Ruta principal para mostrar el HTML
+@app.get("/", response_class=FileResponse)
+def read_root():
+    return "static/index.html"
+
 
 import os
 
