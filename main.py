@@ -4,13 +4,7 @@ from database import get_db
 from crud_assets import *
 from crud_herramientas import *
 import che
-import os
 
-port = int(os.environ.get("PORT", 8000))
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
 
 
 app = FastAPI()
@@ -72,3 +66,14 @@ def filtrar_herramientas(licencia: str, db: Session = Depends(get_db)):
 @app.put("/herramientas/", response_model=che.HerramientaRead, tags=["Herramientas"])
 def actualizar_herramienta_endpoint(h: che.HerramientaRead, db: Session = Depends(get_db)):
     return actualizar_herramienta(db, h)
+
+@app.get("/")
+def read_root():
+    return {"message": "API del Proyecto Integrador 2 está activa 🚀"}
+
+import os
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))  # Render define PORT automáticamente
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
