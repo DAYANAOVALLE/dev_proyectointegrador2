@@ -4,7 +4,7 @@ from fastapi import HTTPException
 import che
 
 def get_all_assets(db: Session):
-    return db.query(Asset).filter(Asset.activo == True).all()
+    return db.query(Asset).filter(Asset.activo ==True).all()
 
 def get_asset_by_id(db: Session, asset_id: int):
     asset = db.query(Asset).filter(Asset.id == asset_id, Asset.activo == True).first()

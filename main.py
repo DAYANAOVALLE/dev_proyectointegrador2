@@ -3,7 +3,15 @@ from sqlalchemy.orm import Session
 from database import get_db
 from crud_assets import *
 from crud_herramientas import *
-import che  # ✅ Importar tus modelos Pydantic
+import che
+import os
+
+port = int(os.environ.get("PORT", 8000))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
+
 
 app = FastAPI()
 
